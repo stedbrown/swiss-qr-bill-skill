@@ -1,28 +1,51 @@
 <h1 align="center">Swiss QR Bill Skill</h1>
 
-<p align="center"><strong>Da un file JSON a un bollettino di pagamento svizzero in PDF.</strong></p>
+<p align="center"><strong>Generate a printable Swiss QR payment slip from a JSON file.</strong></p>
 
 <p align="center">
   Codex · Claude Code · Node.js 22+ · MIT
 </p>
 
 <p align="center">
-  <a href="#prova-la-demo">Prova la demo</a> ·
-  <a href="#installa-la-skill">Installa la skill</a> ·
-  <a href="examples/demo.pdf">Apri il PDF di esempio</a>
+  <a href="#install-the-skill">Install the skill</a> ·
+  <a href="#try-the-demo">Try the demo</a> ·
+  <a href="examples/demo.pdf">View the sample PDF</a>
 </p>
 
 <p align="center">
-  <a href="examples/demo.pdf"><img src="examples/preview.png" alt="Anteprima del bollettino in italiano con ricevuta, QR svizzero, riferimento SCOR e importo in CHF" width="940"></a>
+  <a href="examples/demo.pdf"><img src="examples/preview.png" alt="Italian-language Swiss payment slip with receipt, Swiss QR code, SCOR reference and CHF amount" width="940"></a>
 </p>
 
-<p align="center"><sub>Dettaglio del bollettino con dati dimostrativi. Il PDF completo è in formato A4.</sub></p>
+<p align="center"><sub>Payment slip and receipt with sample data. The full PDF is A4.</sub></p>
 
-La skill prepara i dati per il generatore. Lo script verifica IBAN, importo e riferimento prima di produrre un PDF con ricevuta e sezione di pagamento. Puoi usare lo stesso script da terminale, anche senza un agente.
+The skill prepares the payment data. The generator checks the IBAN, amount, and payment reference before creating the PDF. You can also run the same generator directly from your terminal.
 
-## Prova la demo
+## Install the skill
 
-Servono Node.js 22 o successivo e npm.
+### Quick install
+
+Run this from your project root with Node.js 22 or later and npm.
+
+```sh
+npx skills add stedbrown/swiss-qr-bill-skill --skill swiss-qr-bill --agent codex claude-code --yes --copy
+```
+
+This installs the skill for both agents in the current project. To install it for just one, keep either `codex` or `claude-code` after `--agent`. The Skills CLI copies the skill files. Run `npm ci --ignore-scripts` inside each installed copy you plan to use to set up the PDF generator. [Skills CLI documentation](https://github.com/vercel-labs/skills/blob/main/docs/commands.md#skills-add)
+
+### Manual install
+
+Copy the entire [`swiss-qr-bill/`](swiss-qr-bill/) directory to the path for your agent, then run `npm ci --ignore-scripts` inside the copy.
+
+| Agent | Project path | Invoke |
+| --- | --- | --- |
+| [Codex](https://developers.openai.com/codex/skills) | `.agents/skills/swiss-qr-bill/` | `$swiss-qr-bill` |
+| [Claude Code](https://code.claude.com/docs/en/skills) | `.claude/skills/swiss-qr-bill/` | `/swiss-qr-bill` |
+
+> Use the swiss-qr-bill skill to generate a payment slip from `payment.json`. Save it as `payment.pdf`.
+
+You can use the skill in Codex mode in the ChatGPT desktop app. Distribution to Chat and Work on the web requires a plugin package. [OpenAI skills documentation](https://learn.chatgpt.com/docs/build-skills)
+
+## Try the demo
 
 ```sh
 git clone https://github.com/stedbrown/swiss-qr-bill-skill.git
@@ -31,41 +54,28 @@ npm ci --ignore-scripts
 node scripts/generate.mjs examples/demo.json demo.pdf
 ```
 
-Il comando crea `demo.pdf` nella cartella corrente. Per stamparlo, scegli **dimensioni effettive (100%)**. Per ripetere il comando, scegli un nuovo nome per il PDF.
+The command writes `demo.pdf` to the current directory. Print at **actual size (100%)**. Use a fresh output filename on subsequent runs.
 
-## Installa la skill
+## Use your own data
 
-Copia la cartella [`swiss-qr-bill/`](swiss-qr-bill/) nel percorso adatto e installa le dipendenze nella copia con `npm ci --ignore-scripts`.
+Start with the [sample JSON](swiss-qr-bill/examples/demo.json). Store real payment data outside the repository. Pass the JSON path and the desired PDF path to the script, using an existing output directory.
 
-| Ambiente | Percorso nel progetto | Come richiamarla |
-| --- | --- | --- |
-| [Codex](https://developers.openai.com/codex/skills) | `.agents/skills/swiss-qr-bill/` | `$swiss-qr-bill` |
-| [Claude Code](https://code.claude.com/docs/en/skills) | `.claude/skills/swiss-qr-bill/` | `/swiss-qr-bill` |
-
-> Usa la skill swiss-qr-bill per generare un bollettino dai dati di `pagamento.json`. Salvalo come `pagamento.pdf`.
-
-In ChatGPT desktop puoi usarla dalla modalità Codex. Per distribuirla in Chat e Work sul web serve un pacchetto plugin. [Guida OpenAI](https://learn.chatgpt.com/docs/build-skills)
-
-## Usa i tuoi dati
-
-Parti dal [JSON di esempio](swiss-qr-bill/examples/demo.json). Tieni i dati reali fuori dal repository e passa allo script il percorso del JSON e quello del PDF. La cartella di destinazione deve già esistere.
-
-| Campo | Valore atteso |
+| Field | Accepted value |
 | --- | --- |
-| `creditor` | `account` (IBAN CH o LI), `name`, `zip`, `city`, `country`. `address` e `buildingNumber` sono facoltativi. |
-| `debtor` | Facoltativo. Stessi campi dell'indirizzo del creditore, senza `account`. |
-| `currency` | `CHF` o `EUR`. Per EUR serve un IBAN ordinario. |
-| `amount` | Numero facoltativo da 0.01 a 999999999.99, con un massimo di due decimali. Se omesso, il PDF lascia lo spazio per scriverlo. |
-| `reference` | Con QR-IBAN serve un riferimento QR di 27 cifre. Con IBAN ordinario è facoltativo e, se presente, deve essere un riferimento SCOR ISO 11649. |
-| `message` | Facoltativo, fino a 140 caratteri su una riga. |
-| `language` | `IT` (predefinito), `DE`, `FR`, `EN` o `RM`. |
+| `creditor` | `account` (CH or LI IBAN), `name`, `zip`, `city`, and `country`. `address` and `buildingNumber` are optional. |
+| `debtor` | Optional. The same address fields as the creditor, without `account`. |
+| `currency` | `CHF` or `EUR`. EUR requires a regular IBAN. |
+| `amount` | Optional number from 0.01 to 999999999.99, with up to two decimal places. Omit it to leave a blank amount box. |
+| `reference` | A 27-digit QR reference is required with a QR-IBAN. With a regular IBAN, supply a valid ISO 11649 SCOR reference or omit the field. |
+| `message` | Optional, up to 140 characters on one line. |
+| `language` | `IT` (default), `DE`, `FR`, `EN`, or `RM`. |
 
-Scrivi CAP, numeri civici e riferimenti come stringhe per conservare gli zeri iniziali. Ometti i campi facoltativi vuoti. Il testo supporta i caratteri ASCII stampabili e un sottoinsieme di lettere latine e segni di punteggiatura.
+Use strings for postal codes, house numbers, and references to preserve leading zeros. Omit optional fields when empty. Text supports printable ASCII and a subset of Latin letters and punctuation.
 
-Il generatore produce un bollettino per esecuzione. Per aggiungere intestazione, righe e IVA, consulta la [guida SwissQRBill alle fatture complete](https://github.com/schoero/swissqrbill/blob/main/docs/how-to-create-a-complete-qr-bill.md). Prima di emettere il bollettino, verifica le coordinate del beneficiario e confronta i dati letti dal QR con quelli attesi. [Specifiche QR-bill di SIX](https://www.six-group.com/en/products-services/banking-services/payment-standardization/standards/qr-bill.html)
+The generator creates one payment slip per run. For invoices with a header, line items, and VAT, see the [SwissQRBill full invoice guide](https://github.com/schoero/swissqrbill/blob/main/docs/how-to-create-a-complete-qr-bill.md). Before issuing a slip, verify the beneficiary's details and compare the scanned QR data with the intended payment details. [SIX QR-bill specifications](https://www.six-group.com/en/products-services/banking-services/payment-standardization/standards/qr-bill.html)
 
-## Test e licenza
+## Tests and license
 
-Esegui `npm test` dalla cartella `swiss-qr-bill/`. I test coprono la generazione del PDF, la protezione dalla sovrascrittura e il rifiuto di dati errati, incluso il checksum SCOR del caso [SwissQRBill #487](https://github.com/schoero/swissqrbill/issues/487).
+Run `npm test` from `swiss-qr-bill/`. The tests cover PDF generation, protection against overwriting an existing file, and rejection of invalid input, including the SCOR checksum case reported in [SwissQRBill #487](https://github.com/schoero/swissqrbill/issues/487).
 
-Il progetto è distribuito con licenza [MIT](LICENSE). Usa [SwissQRBill](https://github.com/schoero/swissqrbill) e [PDFKit](https://pdfkit.org/), con versioni fissate nel lockfile.
+Distributed under the [MIT License](LICENSE). Built with [SwissQRBill](https://github.com/schoero/swissqrbill) and [PDFKit](https://pdfkit.org/), with versions pinned in the lockfile.
